@@ -1,21 +1,23 @@
-import tweepy
-from dotenv import load_dotenv
 import os
+import discord
+from dotenv import load_dotenv
 
 load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
-CONSUMER_KEY = os.getenv("CONSUMER_KEY")
-CONSUMER_SECRET = os.getenv("CONSUMER_SECRET")
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET")
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 
-client = tweepy.Client(
-    consumer_key=CONSUMER_KEY,
-    consumer_secret=CONSUMER_SECRET,
-    access_token=ACCESS_TOKEN,
-    access_token_secret=ACCESS_TOKEN_SECRET,
-)
+@client.event
+async def on_ready():
+    print(f"Logged in as {client.user}")
 
-tweet_text = "hello twitter"
-# client.create_tweet(text=tweet_text)
-print(tweet_text)
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+    if message.content == "!hello":
+        await message.channel.send("Hello")
+
+client.run(TOKEN)
