@@ -1,7 +1,7 @@
 import os
 import discord
 from dotenv import load_dotenv
-from discord.ext import tasks
+from discord.ext import tasks, commands
 
 from feed import get_entries
 
@@ -10,13 +10,20 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 seen_links = set()
 
 
-@client.event
+@bot.command()
+async def news(ctx):
+    entries = get_entries()
+    for entry in entries[:3]:
+        await ctx.send(f"{entry.title}\n{entry.link}")
+
+
+@bot.event
 async def on_ready():
-    print(f"Logged in as {client.user}")
+    print(f"Logged in as {bot.user}")
     entries = get_entries()
     for entry in entries:
         seen_links.add(entry.link)
@@ -27,7 +34,7 @@ async def on_ready():
 async def check_feed():
     entries = get_entries()
     channel_id = int(os.getenv("CHANNEL_ID"))
-    channel = client.get_channel(channel_id)
+    channel = bot.get_channel(channel_id)
     for entry in entries:
         if entry.link not in seen_links:
             seen_links.add(entry.link)
@@ -35,4 +42,4 @@ async def check_feed():
     print("Checking feed")
 
 
-client.run(TOKEN)
+bot.run(TOKEN)
